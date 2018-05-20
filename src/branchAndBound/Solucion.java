@@ -5,9 +5,7 @@ public class Solucion {
 	private float benefMejor;
 	private float nodosExpandidos;
 	public Solucion(int[] solMejor, float benefMejor, float nodosExpandidos) {
-
 		this.solMejor= solMejor;
-
 		this.benefMejor = benefMejor;
 		this.nodosExpandidos = nodosExpandidos;
 	}
