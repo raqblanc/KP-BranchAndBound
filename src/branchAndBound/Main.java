@@ -35,7 +35,7 @@ public class Main {
 				//Ordenar P y V por vi/pi
 				ordenar(P, V);
 				
-				System.out.println("####################### JUEGO DE DATOS " + cont + " #######################");
+				System.out.println("###########################  JUEGO DE DATOS  " + cont + " ###########################\n");
 				
 				
 				mostrarJuegoDatos(n, P, V);
@@ -51,20 +51,12 @@ public class Main {
 				mostrarResultados(sIngenua, timesIngenua);
 				
 				System.out.println("----------------- ESTIMACIÓN AJUSTADA -----------------");
-
+				Solucion sAjustada = new Solucion(new int[n], 0, 0);
+				long timesAjustada = calcularAjustada(P, V, M, n, sAjustada);
+				mostrarResultados(sAjustada, timesAjustada);
+				
 				System.out.println("\n\n");
-				//MochilaRP ingenua = new MochilaRP();
-				//ingenua.mochilaRPingenua(P, V, M, sol, benefMejor, nodosExpandidos, n);
-				/*
-				 * Nodos explorados
-				 * Tiempo total
-				 */
-				//MochilaRP ajustada = new MochilaRP();
-				//ajustada.mochilaRPajustada(P, V, M, sol, benefMejor, nodosExpandidos, n);
-				/*
-				 * Nodos explorados
-				 * Tiempo total
-				 */
+				
 			}
 
 			in.close();
@@ -79,6 +71,32 @@ public class Main {
 
 	}
 
+	/**
+	 * Calcula la solución que poda con estimaciones ajustadas.
+	 * @param P
+	 * @param V
+	 * @param M
+	 * @param n
+	 * @return el tiempo en ms que tarda en ejecutarse
+	 */
+	private static long calcularAjustada(float[] P, float[] V, float M, int n, Solucion sAjustada) {
+		MochilaRP ajustada = new MochilaRP();
+		long timeAjustada = 0;
+		long startTimeAjustada = System.currentTimeMillis();
+		sAjustada = ajustada.mochilaRPajustada(P, V, M, n);
+		long endTimeAjustada = System.currentTimeMillis();
+		timeAjustada += (endTimeAjustada-startTimeAjustada);
+		return timeAjustada;
+	}
+
+	/**
+	 * Calcula la solución que poda con estimaciones ingenuas.
+	 * @param P
+	 * @param V
+	 * @param M
+	 * @param n
+	 * @return el tiempo en ms que tarda en ejecutarse
+	 */
 	private static long calcularIngenua(float[] P, float[] V, float M, int n, Solucion sIngenua) {
 		MochilaRP ingenua = new MochilaRP();
 		long timeIngenua = 0;
@@ -133,6 +151,7 @@ public class Main {
 			System.out.println((i+ 1) + "º) Peso: " + P[i] + ", Valor: " + V[i] + ", Relación: " + (V[i]/P[i]));
 			
 		}
+		System.out.println("\n");
 	}
 
 	private static void ordenar(float[] P, float[] V) {

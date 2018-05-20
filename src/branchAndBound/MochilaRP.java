@@ -154,8 +154,8 @@ public class MochilaRP {
 		Y = new Nodo(-1, n);
 		Y.setPeso(0);
 		Y.setBeneficio(0);
-		Y.setBeneficioOpt(cotaOptimistaAjustada(V, Y.getK(), Y.getBeneficio()));
-		sol.setBenefMejor(cotaPesimistaAjustada(Y.getBeneficio()));
+		Y.setBeneficioOpt(cotaOptimistaAjustada(P, V, Y.getK(), M, Y.getPeso(), Y.getBeneficio()));
+		sol.setBenefMejor(cotaPesimistaAjustada(P, V, Y.getK(), M, Y.getPeso(), Y.getBeneficio()));
 		PriorityQueue <Nodo> cola = new PriorityQueue<Nodo>(1, new Comparador());
 		cola.add(Y);
 		/* Expandimos */
@@ -188,8 +188,8 @@ public class MochilaRP {
 			}
 
 			/* NO METER EL OBJETO */
-			Z.setBeneficioOpt(cotaOptimistaAjustada(V, n, Y.getBeneficio()));
-			float benefPes = cotaPesimistaAjustada(Y.getBeneficio());
+			Z.setBeneficioOpt(cotaOptimistaAjustada(P, V, Y.getK(), M, Y.getPeso(), Y.getBeneficio()));
+			float benefPes = cotaPesimistaAjustada(P, V, Y.getK(), M, Y.getPeso(), Y.getBeneficio());
 			Z.setiEsimaSolucion(Z.getK(), 0);
 			// No sumamos beneficio ni peso, porque no se mete el objeto
 			Z.setPeso(Y.getPeso()); 
@@ -248,9 +248,24 @@ public class MochilaRP {
 	 * @param beneficio
 	 * @return valor de la cota optimista ajustada en la etapa k
 	 */
-	private float cotaPesimistaAjustada(float beneficio) {
-		// TODO Auto-generated method stub
-		return 0;
+	private float cotaPesimistaAjustada(float[] P, float[] V, int k, float M, float peso, float beneficio) {
+		float hueco = M - peso;
+		float cotaPes = beneficio;
+		int n = P.length - 1;
+		while ((k + 1) <= n && P[k+1] <= hueco) {
+			/* Cogemos el objeto entero */
+			hueco -= P[k+1];
+			cotaPes += V[k+1];
+			k++;
+		}
+		while (k + 1 <= n && hueco > 0) { /* Todavía quedan objetos -> buscar los que quepan, si importar el valor*/
+			if (P[k + 1] <= hueco) {
+				hueco -= hueco - P[k + 1];
+				cotaPes += V[k + 1];
+			}
+			k++;
+		}
+		return cotaPes;
 	}
 
 	/**
@@ -261,8 +276,19 @@ public class MochilaRP {
 	 * @param beneficio
 	 * @return valor de la cota pesimista ajustada en la etapa k
 	 */
-	private float cotaOptimistaAjustada(float[] v, int n, float beneficio) {
-		// TODO Auto-generated method stub
-		return 0;
+	private float cotaOptimistaAjustada(float[] P, float[] V, int k, float M, float peso, float beneficio) {
+		float hueco = M - peso;
+		float cotaOpt = beneficio;
+		int n = P.length - 1;
+		while ((k + 1) <= n && P[k+1] <= hueco) {
+			/* Cogemos el objeto entero */
+			hueco -= P[k+1];
+			cotaOpt += V[k+1];
+			k++;
+		}
+		if (k + 1 <= n) { /* Todavía quedan objetos -> fraccionarlo */
+			cotaOpt += (hueco/P[k + 1])*V[k+1];
+		}
+		return cotaOpt;
 	}
 }
