@@ -1,3 +1,4 @@
+package branchAndBound;
 import java.util.Comparator;
 
 public class Comparador implements Comparator<Nodo>{

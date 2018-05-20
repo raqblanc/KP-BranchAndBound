@@ -1,3 +1,4 @@
+package branchAndBound;
 
 public class Solucion {
 	private int solMejor[];

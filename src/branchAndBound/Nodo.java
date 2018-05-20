@@ -1,3 +1,4 @@
+package branchAndBound;
 
 public class Nodo {
 	private int solucion[];
