@@ -37,7 +37,7 @@ public class MochilaRP {
 				X.setPeso(Y.getPeso() + P[X.getK()]); // Aumentamos al peso acumulado el peso del objeto k-ésimo
 				X.setBeneficio(Y.getBeneficio() + V[X.getK()]); // Aumentamos al beneficio acumulado el valor del objeto k-ésimo
 				if (X.getK() == n - 1) { // Si ya no quedan más objetos
-					if (sol.getBenefMejor() <= X.getBeneficio()) {
+					if (sol.getBenefMejor() < X.getBeneficio()) {
 						sol.setSolMejor(X.getSolucion());
 						sol.setBenefMejor(X.getBeneficio());
 					}
@@ -45,7 +45,7 @@ public class MochilaRP {
 				else { // Si sí quedan más objetos encolamos X
 					cola.add(X);
 				}
-				sol.addNodoExpandido();
+
 			}
 
 			/* NO METER EL OBJETO */
@@ -54,7 +54,7 @@ public class MochilaRP {
 			Z.setPeso(Y.getPeso()); 
 			Z.setBeneficio(Y.getBeneficio());
 			if (Z.getK() == n - 1) { //Si es el último objeto
-				if (sol.getBenefMejor() <= Z.getBeneficio()) {
+				if (sol.getBenefMejor() < Z.getBeneficio()) {
 					sol.setSolMejor(Z.getSolucion());
 					sol.setBenefMejor(Z.getBeneficio());
 				}
@@ -88,21 +88,22 @@ public class MochilaRP {
 		Y = new Nodo(-1, n);
 		Y.setPeso(0);
 		Y.setBeneficio(0);
-		Y.setBeneficioOpt(cotaOptimistaIngenua(V, Y.getK(), Y.getBeneficio()));
+		Y.setBeneficioOpt(cotaOptimistaIngenua(Y.getK(), Y.getBeneficio(), V));
 		sol.setBenefMejor(cotaPesimistaIngenua(Y.getBeneficio()));
+
 		PriorityQueue <Nodo> cola = new PriorityQueue<Nodo>(1, new Comparador());
 		cola.add(Y);
 		/* Expandimos */
-		while (!cola.isEmpty()) {
+		while (!cola.isEmpty() && cola.peek().getBeneficioOpt() >= sol.getBenefMejor()) {
+			sol.addNodoExpandido();
 			Y = cola.poll(); // Lo saca de la cola
 			/* Generamos hijos */
 			// X (tomar objeto) 
 			X = new Nodo(Y.getK()+1, n);
 			X.setSolucion(Y.getSolucion());
-			// Z (no tomar objeto)
+			// Z (no tomar objeto) 
 			Z = new Nodo(Y.getK()+1, n);
 			Z.setSolucion(Y.getSolucion());
-
 			/* METER EL OBJETO */
 			if (Y.getPeso() + P[X.getK()] <= M) { // Si el objeto cabe en la mochila
 				X.setiEsimaSolucion(X.getK(), 1); // Marcaje: Marcamos el objeto k-ésimo
@@ -110,46 +111,47 @@ public class MochilaRP {
 				X.setBeneficio(Y.getBeneficio() + V[X.getK()]); // Aumentamos al beneficio acumulado el valor del objeto k-ésimo
 				X.setBeneficioOpt(Y.getBeneficioOpt());
 				if (X.getK() == n - 1) { // Si ya no quedan más objetos
-					// X.beneficio = X.beneficioOpt(X) ≥ sol.beneficioMejor
 					sol.setSolMejor(X.getSolucion());
 					sol.setBenefMejor(X.getBeneficio());
-
 				}
 				else { // Si sí quedan más objetos encolamos X
 					cola.add(X);
 				}
-				sol.addNodoExpandido();
+
 			}
 
 			/* NO METER EL OBJETO */
-			Z.setBeneficioOpt(cotaOptimistaIngenua(V, n, Y.getBeneficio()));
+			Z.setBeneficioOpt(cotaOptimistaIngenua(Z.getK(), Y.getBeneficio(), V));
 			float benefPes = cotaPesimistaIngenua(Y.getBeneficio());
-			Z.setiEsimaSolucion(Z.getK(), 0);
-			// No sumamos beneficio ni peso, porque no se mete el objeto
-			Z.setPeso(Y.getPeso()); 
-			Z.setBeneficio(Y.getBeneficio());
-			if (Z.getK() == n - 1) { //Si es el último objeto
+			if (Z.getBeneficioOpt() >= sol.getBenefMejor()) {
+				Z.setiEsimaSolucion(Z.getK(), 0);
+				// No sumamos beneficio ni peso, porque no se mete el objeto
+				Z.setPeso(Y.getPeso()); 
+				Z.setBeneficio(Y.getBeneficio());
+				if (Z.getK() == n - 1) { //Si es el último objeto
 
-				sol.setSolMejor(Z.getSolucion());
-				sol.setBenefMejor(Z.getBeneficio());
+					sol.setSolMejor(Z.getSolucion());
+					sol.setBenefMejor(Z.getBeneficio());
 
-			}
-			else {
-				cola.add(Z);
-				if (sol.getBenefMejor() < benefPes) {
-					sol.setBenefMejor(benefPes);
+
 				}
-			}
+				else {
+					cola.add(Z);
+					sol.setBenefMejor(Math.max(sol.getBenefMejor(), benefPes));
+				}
 
-			sol.addNodoExpandido();
+
+			}
 		}
 		return sol;
 	}
 
-	
+
 	public Solucion mochilaRPajustada(float[] P, float[] V, float M, int n) {
+
 		Solucion sol = new Solucion(new int[n], 0, 0);
 		Nodo X, Y, Z;
+
 		/* Generamos la raíz */
 		Y = new Nodo(-1, n);
 		Y.setPeso(0);
@@ -159,7 +161,8 @@ public class MochilaRP {
 		PriorityQueue <Nodo> cola = new PriorityQueue<Nodo>(1, new Comparador());
 		cola.add(Y);
 		/* Expandimos */
-		while (!cola.isEmpty()) {
+		while (!cola.isEmpty() && cola.peek().getBeneficioOpt() >= sol.getBenefMejor()) {
+			sol.addNodoExpandido();
 			Y = cola.poll(); // Lo saca de la cola
 			/* Generamos hijos */
 			// X (tomar objeto) 
@@ -168,10 +171,10 @@ public class MochilaRP {
 			// Z (no tomar objeto)
 			Z = new Nodo(Y.getK()+1, n);
 			Z.setSolucion(Y.getSolucion());
-
 			/* METER EL OBJETO */
 			if (Y.getPeso() + P[X.getK()] <= M) { // Si el objeto cabe en la mochila
 				X.setiEsimaSolucion(X.getK(), 1); // Marcaje: Marcamos el objeto k-ésimo
+
 				X.setPeso(Y.getPeso() + P[X.getK()]); // Aumentamos al peso acumulado el peso del objeto k-ésimo
 				X.setBeneficio(Y.getBeneficio() + V[X.getK()]); // Aumentamos al beneficio acumulado el valor del objeto k-ésimo
 				X.setBeneficioOpt(Y.getBeneficioOpt());
@@ -184,33 +187,35 @@ public class MochilaRP {
 				else { // Si sí quedan más objetos encolamos X
 					cola.add(X);
 				}
-				sol.addNodoExpandido();
+
 			}
 
 			/* NO METER EL OBJETO */
-			Z.setBeneficioOpt(cotaOptimistaAjustada(P, V, Y.getK(), M, Y.getPeso(), Y.getBeneficio()));
-			float benefPes = cotaPesimistaAjustada(P, V, Y.getK(), M, Y.getPeso(), Y.getBeneficio());
-			Z.setiEsimaSolucion(Z.getK(), 0);
-			// No sumamos beneficio ni peso, porque no se mete el objeto
-			Z.setPeso(Y.getPeso()); 
-			Z.setBeneficio(Y.getBeneficio());
-			if (Z.getK() == n - 1) { //Si es el último objeto
+			Z.setBeneficioOpt(cotaOptimistaAjustada(P, V, Z.getK(), M, Y.getPeso(), Y.getBeneficio()));
+			float benefPes = cotaPesimistaAjustada(P, V, Z.getK(), M, Y.getPeso(), Y.getBeneficio());
+			if (Z.getBeneficioOpt() >= sol.getBenefMejor()) {
+				Z.setiEsimaSolucion(Z.getK(), 0);
+				// No sumamos beneficio ni peso, porque no se mete el objeto
+				Z.setPeso(Y.getPeso()); 
+				Z.setBeneficio(Y.getBeneficio());
+				if (Z.getK() == n - 1) { //Si es el último objeto
 
-				sol.setSolMejor(Z.getSolucion());
-				sol.setBenefMejor(Z.getBeneficio());
+					sol.setSolMejor(Z.getSolucion());
+					sol.setBenefMejor(Z.getBeneficio());
 
-			}
-			else {
-				cola.add(Z);
-				if (sol.getBenefMejor() < benefPes) {
-					sol.setBenefMejor(benefPes);
+
 				}
-			}
+				else {
+					cola.add(Z);
+					sol.setBenefMejor(Math.max(sol.getBenefMejor(), benefPes));
+				}
 
-			sol.addNodoExpandido();
+			}
 		}
 		return sol;
 	}
+
+
 
 
 	////////////////////////////////////////////////// COTAS //////////////////////////////////////////////////
@@ -225,7 +230,7 @@ public class MochilaRP {
 	private float cotaPesimistaIngenua(float beneficio) {
 		return beneficio;
 	}
-	
+
 	/**
 	 * Cota optimista: considerar que el resto de objetos se introducen TODOS en la mochila.
 	 * Desde la etapa k, se suman los valores de todos los objetos que quedan al ya beneficio acumulado.
@@ -234,14 +239,18 @@ public class MochilaRP {
 	 * @param beneficio
 	 * @return valor de la cota optimista en la etapa k
 	 */
-	private float cotaOptimistaIngenua(float[] V, int k, float beneficio) {
-		float cotaOpt = beneficio;
-		for (int i = k + 1; i + 1 <= (V.length - 1); i++) {
-			cotaOpt += V[i];
+	private float cotaOptimistaIngenua(int k, float benef, float V[]) {
+		float cotaOptimista = benef;
+		int j = k +1; 
+		int n = V.length - 1; 
+		while ((j <= n)){
+			cotaOptimista += V[j];
+			j++;
 		}
-		return cotaOpt;
+
+		return cotaOptimista;
 	}
-	
+
 	/**
 	 * Cota optimista: utilizando el algoritmo voraz de la mochila que puede ser fraccionada.
 	 * Completa la mochila hasta llegar al objeto que hay que fraccionar, que lo fracciona y lo introduce a la mochila.
@@ -252,18 +261,19 @@ public class MochilaRP {
 		float hueco = M - peso;
 		float cotaPes = beneficio;
 		int n = P.length - 1;
-		while ((k + 1) <= n && P[k+1] <= hueco) {
+		int j = k + 1;
+		while (j <= n && P[j] <= hueco) {
 			/* Cogemos el objeto entero */
-			hueco -= P[k+1];
-			cotaPes += V[k+1];
-			k++;
+			hueco -= P[j];
+			cotaPes += V[j];
+			j++;
 		}
-		while (k + 1 <= n && hueco > 0) { /* Todavía quedan objetos -> buscar los que quepan, si importar el valor*/
-			if (P[k + 1] <= hueco) {
-				hueco -= hueco - P[k + 1];
-				cotaPes += V[k + 1];
+		while (j <= n && hueco > 0) { /* Todavía quedan objetos -> buscar los que quepan, si importar el valor*/
+			if (P[j] <= hueco) {
+				hueco -= hueco - P[j];
+				cotaPes += V[j];
 			}
-			k++;
+			j++;
 		}
 		return cotaPes;
 	}
@@ -279,15 +289,16 @@ public class MochilaRP {
 	private float cotaOptimistaAjustada(float[] P, float[] V, int k, float M, float peso, float beneficio) {
 		float hueco = M - peso;
 		float cotaOpt = beneficio;
+		int j = k + 1;
 		int n = P.length - 1;
-		while ((k + 1) <= n && P[k+1] <= hueco) {
+		while (j <= n && P[j] <= hueco) {
 			/* Cogemos el objeto entero */
-			hueco -= P[k+1];
-			cotaOpt += V[k+1];
-			k++;
+			hueco -= P[j];
+			cotaOpt += V[j];
+			j++;
 		}
-		if (k + 1 <= n) { /* Todavía quedan objetos -> fraccionarlo */
-			cotaOpt += (hueco/P[k + 1])*V[k+1];
+		if (j <= n) { /* Todavía quedan objetos -> fraccionarlo */
+			cotaOpt += (hueco/P[j])*V[j];
 		}
 		return cotaOpt;
 	}

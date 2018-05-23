@@ -6,10 +6,12 @@ import java.util.Scanner;
 
 public class Main {
 
+	public static float time = 0;
+	
 	public static void main(String[] args) {
 		int n, sol[] = null;
 		float  P[] = null, V[] = null, M = 0;
-		String datostxt = "datos.txt";
+		String datostxt = "prueba.txt";
 		int cont = 0;
 
 		try {
@@ -18,7 +20,7 @@ public class Main {
 
 			while(in.hasNext()) { 
 				cont++;
-				M = in.nextFloat(); // Tamaño máximo de la mochila
+				M = (float) in.nextDouble() ;// Tamaño máximo de la mochila
 				n = in.nextInt(); // Número de objetos
 				sol = new int[n]; // 1 -> el objeto i-ésimo se coge, 0 -> lo contrario
 				for (int i = 0; i < n; i++) {
@@ -38,22 +40,21 @@ public class Main {
 				System.out.println("###########################  JUEGO DE DATOS  " + cont + " ###########################\n");
 				
 				
-				mostrarJuegoDatos(n, P, V);
+				mostrarJuegoDatos(n, P, V, M);
 				
 				System.out.println("----------------- SOLO FACTIBILIDAD -----------------");
-				Solucion sFactible = new Solucion(new int[n], 0, 0);
-				long timeSoloFactible = calcularSoloFactible(P, V, M, n, sFactible);
-				mostrarResultados(sFactible, timeSoloFactible);
+			
+				Solucion sFactible = calcularSoloFactible(P, V, M, n);
+				mostrarResultados(sFactible, time);
 				
-				System.out.println("----------------- ESTIMACIÓN INGENUA -----------------");
-				Solucion sIngenua = new Solucion(new int[n], 0, 0);
-				long timesIngenua = calcularIngenua(P, V, M, n, sIngenua);
-				mostrarResultados(sIngenua, timesIngenua);
+				System.out.println("\n----------------- ESTIMACIÓN INGENUA -----------------");
 				
-				System.out.println("----------------- ESTIMACIÓN AJUSTADA -----------------");
-				Solucion sAjustada = new Solucion(new int[n], 0, 0);
-				long timesAjustada = calcularAjustada(P, V, M, n, sAjustada);
-				mostrarResultados(sAjustada, timesAjustada);
+				Solucion  sIngenua = calcularIngenua(P, V, M, n);
+				mostrarResultados(sIngenua, time);
+				
+				System.out.println("\n----------------- ESTIMACIÓN AJUSTADA -----------------");
+				Solucion sAjustada = calcularAjustada(P, V, M, n);
+				mostrarResultados(sAjustada, time);
 				
 				System.out.println("\n\n");
 				
@@ -79,14 +80,15 @@ public class Main {
 	 * @param n
 	 * @return el tiempo en ms que tarda en ejecutarse
 	 */
-	private static long calcularAjustada(float[] P, float[] V, float M, int n, Solucion sAjustada) {
+	private static Solucion calcularAjustada(float[] P, float[] V, float M, int n) {
 		MochilaRP ajustada = new MochilaRP();
 		long timeAjustada = 0;
 		long startTimeAjustada = System.currentTimeMillis();
-		sAjustada = ajustada.mochilaRPajustada(P, V, M, n);
+		Solucion sAjustada = ajustada.mochilaRPajustada(P, V, M, n);
 		long endTimeAjustada = System.currentTimeMillis();
 		timeAjustada += (endTimeAjustada-startTimeAjustada);
-		return timeAjustada;
+		time = timeAjustada;
+		return sAjustada;
 	}
 
 	/**
@@ -97,14 +99,15 @@ public class Main {
 	 * @param n
 	 * @return el tiempo en ms que tarda en ejecutarse
 	 */
-	private static long calcularIngenua(float[] P, float[] V, float M, int n, Solucion sIngenua) {
+	private static Solucion calcularIngenua(float[] P, float[] V, float M, int n) {
 		MochilaRP ingenua = new MochilaRP();
 		long timeIngenua = 0;
 		long startTimeIngenua = System.currentTimeMillis();
-		sIngenua = ingenua.mochilaRPingenua(P, V, M, n);
+		Solucion sIngenua = ingenua.mochilaRPingenua(P, V, M, n);
 		long endTimeIngenua = System.currentTimeMillis();
 		timeIngenua += (endTimeIngenua-startTimeIngenua);
-		return timeIngenua;
+		time = timeIngenua;
+		return sIngenua;
 	}
 
 	/**
@@ -115,38 +118,41 @@ public class Main {
 	 * @param n
 	 * @return el tiempo en ms que tarda en ejecutarse
 	 */
-	private static long calcularSoloFactible(float P[], float V[], float M, int n, Solucion s) {
+	private static Solucion calcularSoloFactible(float P[], float V[], float M, int n) {
 		MochilaRP soloFactible = new MochilaRP();
 		long timeSoloFactible = 0;
 		long startTimeSoloFactible = System.currentTimeMillis();
-		s = soloFactible.mochilaRPSoloFactible(P, V, M, n);
+		Solucion s = soloFactible.mochilaRPSoloFactible(P, V, M, n);
 		long endTimeSoloFactible = System.currentTimeMillis();
 		timeSoloFactible += (endTimeSoloFactible-startTimeSoloFactible);
-		return timeSoloFactible;
+		Main.time = timeSoloFactible;
+		return s;
 	}
 
-	private static void mostrarResultados(Solucion s, long timeSoloFactible) {
+	private static void mostrarResultados(Solucion s, float time) {
 		System.out.println("- Nodos expandidos: "+ s.getNodosExpandidos());
-		System.out.println("- Tiempo total: " + timeSoloFactible +  " ms");
+		System.out.println("- Tiempo total: " + time +  " ms");
+		System.out.println("- Beneficio mejor: " + s.getBenefMejor());
 		System.out.println("- Objetos escogidos: ");
 		int solMejor[] = s.getSolMejor();
 		for (int i = 0; i < solMejor.length; i++) {
 			System.out.print("     " + (i+1) + "º) ");
-			if (solMejor[i] == 0) {
+			if (solMejor[i] == 1) {
 				System.out.print("Sí");
 			}
 			else {
 				System.out.print("No");
 			}
-			if (i > 6) {
+			if (i % 6 == 0) {
 				System.out.println("\n");
 			}
 		}
-		System.out.println("\n- Beneficio mejor: " + s.getBenefMejor() + "\n");
+		
 		
 	}
 
-	private static void mostrarJuegoDatos(int n, float P[], float V[]) {
+	private static void mostrarJuegoDatos(int n, float P[], float V[], float M) {
+		System.out.println("Capacidad mochila: " + M);
 		for (int i = 0; i < n; i++) {
 			System.out.println((i+ 1) + "º) Peso: " + P[i] + ", Valor: " + V[i] + ", Relación: " + (V[i]/P[i]));
 			
