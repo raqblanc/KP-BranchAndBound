@@ -4,10 +4,15 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.Scanner;
 
+/**
+ * Clase Main
+ * @author raqblanc
+ *
+ */
 public class Main {
 
 	public static float time = 0;
-	
+
 	public static void main(String[] args) {
 		int n, sol[] = null;
 		float  P[] = null, V[] = null, M = 0;
@@ -36,28 +41,28 @@ public class Main {
 				}
 				//Ordenar P y V por vi/pi
 				ordenar(P, V);
-				
+
 				System.out.println("###########################  JUEGO DE DATOS  " + cont + " ###########################\n");
-				
-				
+
+
 				mostrarJuegoDatos(n, P, V, M);
-				
+
 				System.out.println("----------------- SOLO FACTIBILIDAD -----------------");
-			
+
 				Solucion sFactible = calcularSoloFactible(P, V, M, n);
 				mostrarResultados(sFactible, time);
-				
+
 				System.out.println("\n----------------- ESTIMACIÓN INGENUA -----------------");
-				
+
 				Solucion  sIngenua = calcularIngenua(P, V, M, n);
 				mostrarResultados(sIngenua, time);
-				
+
 				System.out.println("\n----------------- ESTIMACIÓN AJUSTADA -----------------");
 				Solucion sAjustada = calcularAjustada(P, V, M, n);
 				mostrarResultados(sAjustada, time);
-				
+
 				System.out.println("\n\n");
-				
+
 			}
 
 			in.close();
@@ -84,9 +89,14 @@ public class Main {
 		MochilaRP ajustada = new MochilaRP();
 		long timeAjustada = 0;
 		long startTimeAjustada = System.currentTimeMillis();
-		Solucion sAjustada = ajustada.mochilaRPajustada(P, V, M, n);
+		int x = 0;
+		Solucion sAjustada = null;
+		while (x < 2) {
+			sAjustada = ajustada.mochilaRPajustada(P, V, M, n);
+			x++;
+		}
 		long endTimeAjustada = System.currentTimeMillis();
-		timeAjustada += (endTimeAjustada-startTimeAjustada);
+		timeAjustada += (endTimeAjustada-startTimeAjustada)/2;
 		time = timeAjustada;
 		return sAjustada;
 	}
@@ -103,9 +113,14 @@ public class Main {
 		MochilaRP ingenua = new MochilaRP();
 		long timeIngenua = 0;
 		long startTimeIngenua = System.currentTimeMillis();
-		Solucion sIngenua = ingenua.mochilaRPingenua(P, V, M, n);
+		int x = 0;
+		Solucion sIngenua = null;
+		while (x < 2) {
+			sIngenua = ingenua.mochilaRPingenua(P, V, M, n);
+			x++;
+		}
 		long endTimeIngenua = System.currentTimeMillis();
-		timeIngenua += (endTimeIngenua-startTimeIngenua);
+		timeIngenua += (endTimeIngenua-startTimeIngenua)/2;
 		time = timeIngenua;
 		return sIngenua;
 	}
@@ -122,16 +137,27 @@ public class Main {
 		MochilaRP soloFactible = new MochilaRP();
 		long timeSoloFactible = 0;
 		long startTimeSoloFactible = System.currentTimeMillis();
-		Solucion s = soloFactible.mochilaRPSoloFactible(P, V, M, n);
+		int x = 0;
+		Solucion s = null;
+		
+			s = soloFactible.mochilaRPSoloFactible(P, V, M, n);
+			x++;
+		
 		long endTimeSoloFactible = System.currentTimeMillis();
 		timeSoloFactible += (endTimeSoloFactible-startTimeSoloFactible);
 		Main.time = timeSoloFactible;
 		return s;
 	}
 
+	/**
+	 * Muestra los resultados obtenidos por consola
+	 * @param s
+	 * @param time
+	 */
 	private static void mostrarResultados(Solucion s, float time) {
 		System.out.println("- Nodos expandidos: "+ s.getNodosExpandidos());
 		System.out.println("- Tiempo total: " + time +  " ms");
+		System.out.println("- Tiempo medio por nodo: " + time/s.getNodosExpandidos() +  " ms/nodo");
 		System.out.println("- Beneficio mejor: " + s.getBenefMejor());
 		System.out.println("- Objetos escogidos: ");
 		int solMejor[] = s.getSolMejor();
@@ -147,26 +173,38 @@ public class Main {
 				System.out.println("\n");
 			}
 		}
-		
-		
+
+
 	}
 
+	/**
+	 * Muestra los juegos de datos de entrada por consola
+	 * @param n
+	 * @param P
+	 * @param V
+	 * @param M
+	 */
 	private static void mostrarJuegoDatos(int n, float P[], float V[], float M) {
 		System.out.println("Capacidad mochila: " + M);
 		for (int i = 0; i < n; i++) {
 			System.out.println((i+ 1) + "º) Peso: " + P[i] + ", Valor: " + V[i] + ", Relación: " + (V[i]/P[i]));
-			
+
 		}
 		System.out.println("\n");
 	}
 
+	/**
+	 * Ordena por el método de la burbuja V y P por V/P de mayor a menor
+	 * @param P
+	 * @param V
+	 */
 	private static void ordenar(float[] P, float[] V) {
 		float relacion[] = new float[P.length];
 		for (int i = 0; i < relacion.length; i++) {
 			//Vi / Pi
 			relacion[i] = V[i] / P[i];
 		}
-		//Ordenar por el método de la burbuja
+
 		boolean intercambio = true;
 		int j = 0;
 		float tmp, tmpv, tmpp;

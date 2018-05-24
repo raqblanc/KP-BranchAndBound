@@ -1,5 +1,10 @@
 package branchAndBound;
 
+/**
+ * Clase necesaria para la gestión del árbol en los algoritmos de ramificación y poda
+ * @author raqblanc
+ *
+ */
 public class Nodo {
 	private int solucion[];
 	private int k;
@@ -15,9 +20,9 @@ public class Nodo {
 		this.solucion = new int[n];
 	}
 	
-	//Getters y setters
+	
 	public void setSolucion(int[] sol) {
-		//Hacemos una copia
+		//copia
 		for (int i = 0; i < solucion.length; i++) {
 			this.solucion[i] = sol[i];
 		}
@@ -32,7 +37,7 @@ public class Nodo {
 		this.beneficioOpt = beneficioOpt;
 	}
 	public int[] getSolucion() { 
-		//Hacemos una copia
+		//copia
 		int tam = this.solucion.length;
 		int sol[] = new int[tam];
 		for (int i = 0; i < tam; i++) {

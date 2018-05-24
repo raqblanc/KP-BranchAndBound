@@ -1,6 +1,11 @@
 package branchAndBound;
 import java.util.PriorityQueue;
 
+/**
+ * Clase que implementa los algoritmos de ramificación y poda pedidos con sus correspondientes cotas optimistas y pesimistas.
+ * @author raqblanc
+ *
+ */
 public class MochilaRP {
 	/**
 	 * Solución del problema de la mochila menos eficiente, la única poda es la de factibilidad.
@@ -72,7 +77,7 @@ public class MochilaRP {
 
 
 	/**
-	 * Solución del problema de la mochila con ramificación y poda. Poda de factibilidad y con estimaciones optimista y pesimista.
+	 * Solución del problema de la mochila con ramificación y poda. Poda: factibilidad y con estimaciones optimista y pesimista ingenuas (malas).
 	 * Las estimaciones utilizadas son ingenuas, es decir, la poda es peor.
 	 * Es mejor que el algoritmo que solo poda con la factibilidad, pero peor que el que tiene unas estimaciones más ajustadas.
 	 * @param P
@@ -147,6 +152,16 @@ public class MochilaRP {
 	}
 
 
+	/**
+	 * Solución del problema de la mochila con ramificación y poda. Poda: factibilidad y  con estimaciones optimista y pesimista ajustadas (buenas).
+	 * Las estimaciones utilizadas son ajustadas, es decir, la poda es mejor.
+	 * Es mejor que el algoritmo que solo poda con la factibilidad y el que tiene una poda ingenua.
+	 * @param P
+	 * @param V
+	 * @param M
+	 * @param n
+	 * @return solución obtenida
+	 */
 	public Solucion mochilaRPajustada(float[] P, float[] V, float M, int n) {
 
 		Solucion sol = new Solucion(new int[n], 0, 0);
@@ -270,7 +285,7 @@ public class MochilaRP {
 		}
 		while (j <= n && hueco > 0) { /* Todavía quedan objetos -> buscar los que quepan, si importar el valor*/
 			if (P[j] <= hueco) {
-				hueco -= hueco - P[j];
+				hueco -= P[j];
 				cotaPes += V[j];
 			}
 			j++;
@@ -299,6 +314,7 @@ public class MochilaRP {
 		}
 		if (j <= n) { /* Todavía quedan objetos -> fraccionarlo */
 			cotaOpt += (hueco/P[j])*V[j];
+			//En este momento hueco sería igual a 0
 		}
 		return cotaOpt;
 	}
